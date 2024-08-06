@@ -11,3 +11,8 @@
 - [ ] Crianças têm prioridade para capacete e adultos para kart;
 - [ ] Simular a ideia de dia;
 - [ ] Relatório impresso ao final contendo o total de clientes atendidos, tempo médio de espera, clientes que ficaram na fila e não foram atendidos (apresentar o tempo de espera), quantidade de vezes que cada recurso foi utilizado;
+
+ ### Autores
+
+ Claudio Luis Machado Junior
+ Fernanda Cardoso Petiz
