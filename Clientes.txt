@@ -1,5 +1,5 @@
-Ariel 13
-Aurora 18
-Bela 17
-BrancaDeNeve 14
-Cinderela 19
+Ariel 13 60
+Aurora 18 120
+Bela 17 70
+BrancaDeNeve 14 80
+Cinderela 19 150
