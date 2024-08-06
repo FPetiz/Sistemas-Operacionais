@@ -14,5 +14,5 @@
 
  ### Autores
 
- Claudio Luis Machado Junior
- Fernanda Cardoso Petiz
+ - Claudio Luis Machado Junior
+ - Fernanda Cardoso Petiz
