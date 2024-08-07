@@ -14,7 +14,7 @@ ou recebemos o tempo pelo txt também? */
 #define NUM_CAPACETES 10
 
 //Estrutura que define o cliente
-typedef struct Cliente{
+typedef struct Cliente {
     char nome[50];
     int idade;
     int tempoDeAluguel;
@@ -42,9 +42,9 @@ int main() {
     sem_init(&karts, 1, NUM_CAPACETES);
 
     // Abrindo o arquivo
-    FILE* file = fopen("Clientes.txt", "r");
+    FILE* file = fopen( "Clientes.txt", "r" );
     if ( file == NULL ) {
-        perror("\nErro: nao foi possivel abrir o arquivo.\n");
+        perror( "\nErro: nao foi possivel abrir o arquivo.\n" );
         return EXIT_FAILURE;
     }
 
@@ -55,7 +55,7 @@ int main() {
         numThreads++;
 
         if ( numThreads > MAX_THREADS ) {
-            fprintf(stderr, "\nUltrapassou o limite de threads\n");
+            fprintf( stderr, "\nUltrapassou o limite de threads\n" );
             break;
         }
     } 
@@ -65,11 +65,11 @@ int main() {
     // Criação de thread conforme a idade do piloto
     while( numThreads > 0 ) {
         if ( piloto[numThreads].idade < 14 ) {
-            pthread_create(&tCrianca[numThreads], NULL, threadCrianca, NULL); // o que é esse último NULL?
+            pthread_create( &tCrianca[numThreads], NULL, threadCrianca, NULL ); // o que é esse último NULL?
         } else if ( piloto[numThreads].idade < 18 ) {
-            pthread_create(&tAdolescente[numThreads], NULL, threadAdolescente, NULL);
+            pthread_create( &tAdolescente[numThreads], NULL, threadAdolescente, NULL );
         }else {
-            pthread_create(&tAdulto[numThreads], NULL, threadAdulto, NULL);
+            pthread_create( &tAdulto[numThreads], NULL, threadAdulto, NULL );
             
         }
         numThreads--;
@@ -77,14 +77,14 @@ int main() {
 
     // Bloqueia novas chamadas até que a thread especificada seja concluída
     for ( int i = 0; i < total; i++ ) {
-        pthread_join(tCrianca, NULL);
-        pthread_join(tAdoleacente, NULL);
-        pthread_join(tAdulto, NULL);
+        pthread_join( tCrianca, NULL );
+        pthread_join( tAdoleacente, NULL );
+        pthread_join( tAdulto, NULL );
     }
     
     // Destroi os semáforos
-    sem_destroy(&capacetes);
-    sem_destroy(&karts);
+    sem_destroy( &capacetes );
+    sem_destroy( &karts );
     
     // Fecha arquivo txt
     fclose( file );
@@ -92,27 +92,33 @@ int main() {
 }
 
 
-void* threadCrianca(void* crianca) {
+void* threadCrianca( void* crianca ) {
 
-    sem_wait(&capacetes);
-    sem_wait(&karts);
+    sem_wait( &capacetes );
+    sem_wait( &karts);
 
     //sleep
 
-    sem_post(&karts);
-    sem_post(&capacetes);
+    sem_post( &karts );
+    sem_post( &capacetes );
 }
 
 void* threadAdolescente () {
-
-}
-
-void* threadAdulto(void* adulto) {
-    sem_wait(&karts);
-    sem_wait(&capacetes);
+    sem_wait( &capacetes );
+    sem_wait( &karts);
 
     //sleep
 
-    sem_post(&capacetes);
-    sem_post(&karts);
+    sem_post( &karts );
+    sem_post( &capacetes );
+}
+
+void* threadAdulto( void* adulto ) {
+    sem_wait( &karts );
+    sem_wait( &capacetes );
+
+    //sleep
+
+    sem_post( &capacetes );
+    sem_post( &karts );
 }
