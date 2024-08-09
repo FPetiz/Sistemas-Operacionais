@@ -4,7 +4,7 @@
 #include <semaphore.h>
 #include <unistd.h> 
 #include <string.h>
-#include <sys/syscall.h>
+//#include <sys/syscall.h>
 /*#include <time.h> -- para quando formos gerar o tempo de cada um
 ou recebemos o tempo pelo txt também? */
 
@@ -17,17 +17,15 @@ ou recebemos o tempo pelo txt também? */
 typedef struct Cliente {
     char nome[50];
     int idade;
-    int tempoDeAluguel;
+    //float tempo; ??
 } Cliente;
 
 sem_t capacetes;
 sem_t karts;
 // precisamos de mutex???
 
-// Protótipos das funções
-void* threadCrianca(void* crianca);
-void* threadAdolescente(void* adolescente);
-void* threadAdulto(void* adulto);
+//void* threadC(void* crianca);
+//void* threadA(void* adulto);
 
 int main() {
 
@@ -42,7 +40,7 @@ int main() {
     sem_init(&karts, 1, NUM_CAPACETES);
 
     // Abrindo o arquivo
-    FILE* file = fopen( "Clientes.txt", "r" );
+    FILE* file = fopen("Clientes.txt", "r");
     if ( file == NULL ) {
         perror( "\nErro: nao foi possivel abrir o arquivo.\n" );
         return EXIT_FAILURE;
@@ -50,9 +48,8 @@ int main() {
 
     // Leitura do arquivo e obtenção de dados
     while( threads < MAX_THREADS ) {
-        fscanf( file, "%s %d %d", piloto[numThreads].nome, &piloto[numThreads].idade,
-                        &clientes[numThreads].tempoDeAluguel == 3 );
-        numThreads++;
+        fscanf(file, "%s %d", piloto[threads].nome, &piloto[threads].idade);
+        threads++;
 
         if ( numThreads > MAX_THREADS ) {
             fprintf( stderr, "\nUltrapassou o limite de threads\n" );
@@ -60,65 +57,43 @@ int main() {
         }
     } 
     
-    int total = numThreads;
+/*
+    pthread_t tCrianca, tAdulto;
+    pthread_create(&tCrianca, NULL, threadC, NULL);
+    pthread_create(&tAdulto, NULL, threadA, NULL);
+*/
     
-    // Criação de thread conforme a idade do piloto
-    while( numThreads > 0 ) {
-        if ( piloto[numThreads].idade < 14 ) {
-            pthread_create( &tCrianca[numThreads], NULL, threadCrianca, NULL ); // o que é esse último NULL?
-        } else if ( piloto[numThreads].idade < 18 ) {
-            pthread_create( &tAdolescente[numThreads], NULL, threadAdolescente, NULL );
+    while( threads > 0 ) {
+        if ( piloto[threads].idade < 14 && piloto[threads].idade > 6 ) {
+            printf("\n%s tem maior prioridade para capacete e beixa para kart.", piloto[threads].nome);
+            //pthread_join(tCrianca, NULL);
+        
+        } else if ( piloto[threads].idade > 13 && piloto[threads].idade < 18 ) {
+            printf("\n%s tem media prioridade para capacete e baixa para kart.", piloto[threads].nome);
+
         }else {
-            pthread_create( &tAdulto[numThreads], NULL, threadAdulto, NULL );
-            
+            printf("\n%s tem baixa prioridade para capacete e alta para kart.", piloto[threads].nome);
+             //pthread_join(tAdulto, NULL);
         }
-        numThreads--;
+        threads--;
     } 
 
-    // Bloqueia novas chamadas até que a thread especificada seja concluída
-    for ( int i = 0; i < total; i++ ) {
-        pthread_join( tCrianca, NULL );
-        pthread_join( tAdoleacente, NULL );
-        pthread_join( tAdulto, NULL );
-    }
+/*  
+    sem_destroy(&capacetes);
+    sem_destroy(&karts);
+*/
     
-    // Destroi os semáforos
-    sem_destroy( &capacetes );
-    sem_destroy( &karts );
-    
-    // Fecha arquivo txt
     fclose( file );
     return 0;
 }
 
+/*
+void* threadC(void* crianca) {
 
-void* threadCrianca( void* crianca ) {
-
-    sem_wait( &capacetes );
-    sem_wait( &karts);
-
-    //sleep
-
-    sem_post( &karts );
-    sem_post( &capacetes );
 }
 
-void* threadAdolescente () {
-    sem_wait( &capacetes );
-    sem_wait( &karts);
 
-    //sleep
+void* threadA(void* adulto) {
 
-    sem_post( &karts );
-    sem_post( &capacetes );
 }
-
-void* threadAdulto( void* adulto ) {
-    sem_wait( &karts );
-    sem_wait( &capacetes );
-
-    //sleep
-
-    sem_post( &capacetes );
-    sem_post( &karts );
-}
+*/
