@@ -24,6 +24,12 @@ sem_t capacetes;
 sem_t karts;
 // precisamos de mutex???
 
+int capacetesUsados;
+int kartsUsados;
+int clientesAtenditos;
+int clientesNaoAtendidos;
+//int tempoDeEspera;
+
 // Protótipos das funções
 void* threadCrianca(void* crianca);
 void* threadAdolescente(void* adolescente);
@@ -38,8 +44,8 @@ int main() {
     pthread_t tCrianca[MAX_THREADS], tAdoleacente[MAX_THREADS], tAdulto[MAX_THREADS];
 
     // Inicializa semáforo - não sei porque seria 0 ou 1
-    sem_init(&capacetes, 1, NUM_KARTS);
-    sem_init(&karts, 1, NUM_CAPACETES);
+    sem_init(&capacetes, 0, NUM_KARTS);
+    sem_init(&karts, 0, NUM_CAPACETES);
 
     // Abrindo o arquivo
     FILE* file = fopen( "Clientes.txt", "r" );
@@ -77,9 +83,13 @@ int main() {
 
     // Bloqueia novas chamadas até que a thread especificada seja concluída
     for ( int i = 0; i < total; i++ ) {
-        pthread_join( tCrianca, NULL );
-        pthread_join( tAdoleacente, NULL );
-        pthread_join( tAdulto, NULL );
+        if ( piloto[i].idade < 14 ) {
+            pthread_join( tCrianca, NULL );
+        } else if ( piloto[i].idade < 18 ) {
+            pthread_join( tAdoleacente, NULL );
+        } else {
+            pthread_join( tAdulto, NULL );
+        }
     }
     
     // Destroi os semáforos
@@ -97,6 +107,10 @@ void* threadCrianca( void* crianca ) {
     sem_wait( &capacetes );
     sem_wait( &karts);
 
+    capacetesUsados++;
+    kartsUsados++;
+    clientesAtenditos++;
+
     //sleep
 
     sem_post( &karts );
@@ -107,6 +121,10 @@ void* threadAdolescente () {
     sem_wait( &capacetes );
     sem_wait( &karts);
 
+    capacetesUsados++;
+    kartsUsados++;
+    clientesAtenditos++;
+
     //sleep
 
     sem_post( &karts );
@@ -116,6 +134,10 @@ void* threadAdolescente () {
 void* threadAdulto( void* adulto ) {
     sem_wait( &karts );
     sem_wait( &capacetes );
+
+    capacetesUsados++;
+    kartsUsados++;
+    clientesAtenditos++;
 
     //sleep
 
