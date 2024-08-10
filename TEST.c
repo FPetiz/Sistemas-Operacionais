@@ -10,8 +10,8 @@ ou recebemos o tempo pelo txt também? */
 
 // Constantes
 #define MAX_THREADS 5
-#define NUM_KARTS 10
-#define NUM_CAPACETES 10
+#define NUM_KARTS 3
+#define NUM_CAPACETES 3
 
 //Estrutura que define o cliente
 typedef struct Cliente {
@@ -33,7 +33,8 @@ int main() {
 
     // Variáveis - não sei se essa primeira precisa ser global
     Cliente piloto[MAX_THREADS];
-    int numThreads = 0;
+    int numThreads = 0, atual = 0;
+    int expediente = 3;
 
     pthread_t tCrianca[MAX_THREADS], tAdolescente[MAX_THREADS], tAdulto[MAX_THREADS];
 
@@ -48,37 +49,43 @@ int main() {
         return EXIT_FAILURE;
     }
 
+
+    // For para simular o expediente
+    for (int hora = 0; hora < expediente; ++hora) {
     // Leitura do arquivo e obtenção de dados -- Transformei os whiles em fors
-    for (numThreads = 0; numThreads < MAX_THREADS; numThreads++) {
-        fscanf(file, "%s %d %d", piloto[numThreads].nome, &piloto[numThreads].idade,
-               &piloto[numThreads].tempoDeAluguel);
+        for (numThreads = 0; numThreads < MAX_THREADS; numThreads++) {
+            fscanf(file, "%s %d %d", piloto[numThreads].nome, &piloto[numThreads].idade,
+                &piloto[numThreads].tempoDeAluguel);
 
-        if (numThreads >= MAX_THREADS) {
-            fprintf(stderr, "\nUltrapassou o limite de threads\n");
-            break;
+            if (numThreads >= MAX_THREADS) {
+                fprintf(stderr, "\nUltrapassou o limite de threads\n");
+                break;
+            }
         }
-    }
-    
-    int total = numThreads;
-    
+        
+        int total = numThreads;
+        
     // Criação de thread conforme a idade do piloto -- Transformei os whiles em fors
-    for (numThreads = 0; numThreads < MAX_THREADS; ++numThreads) {
-        if (piloto[numThreads].idade < 14) {
-            pthread_create(&tCrianca[numThreads], NULL, threadCrianca, &piloto[numThreads]);
-        } else if (piloto[numThreads].idade < 18) {
-            pthread_create(&tAdolescente[numThreads], NULL, threadAdolescente, &piloto[numThreads]);
-        } else {
-            pthread_create(&tAdulto[numThreads], NULL, threadAdulto, &piloto[numThreads]);
+        for (numThreads = 0; numThreads < MAX_THREADS; ++numThreads) {
+            if (piloto[numThreads].idade < 14) {
+                pthread_create(&tCrianca[numThreads], NULL, threadCrianca, &piloto[numThreads]);
+            } else if (piloto[numThreads].idade < 18) {
+                pthread_create(&tAdolescente[numThreads], NULL, threadAdolescente, &piloto[numThreads]);
+            } else {
+                pthread_create(&tAdulto[numThreads], NULL, threadAdulto, &piloto[numThreads]);
+            }
         }
-    }
 
-    // Bloqueia novas chamadas até que a thread especificada seja concluída
-    for ( int i = 0; i < total; i++ ) {
-        // for (int j = 0; j < numThreads; j++) { // Porque esse segundo for?
-            pthread_join(tCrianca[i], NULL);
-            pthread_join(tAdolescente[i], NULL);
-            pthread_join(tAdulto[i], NULL);
-    // 
+        // Bloqueia novas chamadas até que a thread especificada seja concluída
+        for ( int i = 0; i < total; i++ ) {
+            // for (int j = 0; j < numThreads; j++) { // Porque esse segundo for?
+                pthread_join(tCrianca[i], NULL);
+                pthread_join(tAdolescente[i], NULL);
+                pthread_join(tAdulto[i], NULL);
+        // 
+        }
+        sleep(2);
+        printf("\nFim da hora %d\n", hora);
     }
     
     // Destroi os semáforos
@@ -139,7 +146,7 @@ void* threadAdulto( void* adulto ) {
 
     sleep( piloto->tempoDeAluguel );
     //sleep
-    sleep(3);
+    // sleep(3);
 
     sem_post( &capacetes );
     sem_post( &karts );
