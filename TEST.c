@@ -4,7 +4,7 @@
 #include <semaphore.h>
 #include <unistd.h> 
 #include <string.h>
-#include <sys/syscall.h>
+// #include <sys/syscall.h>
 /*#include <time.h> -- para quando formos gerar o tempo de cada um
 ou recebemos o tempo pelo txt também? */
 
@@ -22,7 +22,7 @@ typedef struct Cliente {
 
 sem_t capacetes;
 sem_t karts;
-// precisamos de mutex???
+// precisamos de mutex??? - Da pra usar semáforo para controlar o acesso a variáveis compartilhadas
 
 // Protótipos das funções
 void* threadCrianca(void* crianca);
@@ -35,51 +35,50 @@ int main() {
     Cliente piloto[MAX_THREADS];
     int numThreads = 0;
 
-    pthread_t tCrianca[MAX_THREADS], tAdoleacente[MAX_THREADS], tAdulto[MAX_THREADS];
+    pthread_t tCrianca[MAX_THREADS], tAdolescente[MAX_THREADS], tAdulto[MAX_THREADS];
 
-    // Inicializa semáforo - não sei porque seria 0 ou 1
+    // Inicializa semáforo - não sei porque seria 0 ou 1 -- 0 ou 1 indica se vai ser compartilhado ou não
     sem_init(&capacetes, 1, NUM_KARTS);
     sem_init(&karts, 1, NUM_CAPACETES);
 
     // Abrindo o arquivo
-    FILE* file = fopen( "Clientes.txt", "r" );
+    FILE* file = fopen( "F:\\Code\\SO\\Sistemas-Operacionais\\Clientes-2.txt", "r" ); // O meu por algum motivo só lê o arquivo se eu colocar o caminho completo
     if ( file == NULL ) {
         perror( "\nErro: nao foi possivel abrir o arquivo.\n" );
         return EXIT_FAILURE;
     }
 
-    // Leitura do arquivo e obtenção de dados
-    while( threads < MAX_THREADS ) {
-        fscanf( file, "%s %d %d", piloto[numThreads].nome, &piloto[numThreads].idade,
-                        &clientes[numThreads].tempoDeAluguel == 3 );
-        numThreads++;
+    // Leitura do arquivo e obtenção de dados -- Transformei os whiles em fors
+    for (numThreads = 0; numThreads < MAX_THREADS; numThreads++) {
+        fscanf(file, "%s %d %d", piloto[numThreads].nome, &piloto[numThreads].idade,
+               &piloto[numThreads].tempoDeAluguel);
 
-        if ( numThreads > MAX_THREADS ) {
-            fprintf( stderr, "\nUltrapassou o limite de threads\n" );
+        if (numThreads >= MAX_THREADS) {
+            fprintf(stderr, "\nUltrapassou o limite de threads\n");
             break;
         }
-    } 
+    }
     
     int total = numThreads;
     
-    // Criação de thread conforme a idade do piloto
-    while( numThreads > 0 ) {
-        if ( piloto[numThreads].idade < 14 ) {
-            pthread_create( &tCrianca[numThreads], NULL, threadCrianca, NULL ); // o que é esse último NULL?
-        } else if ( piloto[numThreads].idade < 18 ) {
-            pthread_create( &tAdolescente[numThreads], NULL, threadAdolescente, NULL );
-        }else {
-            pthread_create( &tAdulto[numThreads], NULL, threadAdulto, NULL );
-            
+    // Criação de thread conforme a idade do piloto -- Transformei os whiles em fors
+    for (numThreads = 0; numThreads < MAX_THREADS; ++numThreads) {
+        if (piloto[numThreads].idade < 14) {
+            pthread_create(&tCrianca[numThreads], NULL, threadCrianca, &piloto[numThreads]);
+        } else if (piloto[numThreads].idade < 18) {
+            pthread_create(&tAdolescente[numThreads], NULL, threadAdolescente, &piloto[numThreads]);
+        } else {
+            pthread_create(&tAdulto[numThreads], NULL, threadAdulto, &piloto[numThreads]);
         }
-        numThreads--;
-    } 
+    }
 
     // Bloqueia novas chamadas até que a thread especificada seja concluída
     for ( int i = 0; i < total; i++ ) {
-        pthread_join( tCrianca, NULL );
-        pthread_join( tAdoleacente, NULL );
-        pthread_join( tAdulto, NULL );
+        // for (int j = 0; j < numThreads; j++) { // Porque esse segundo for?
+            pthread_join(tCrianca[i], NULL);
+            pthread_join(tAdolescente[i], NULL);
+            pthread_join(tAdulto[i], NULL);
+    // 
     }
     
     // Destroi os semáforos
@@ -94,31 +93,56 @@ int main() {
 
 void* threadCrianca( void* crianca ) {
 
+    Cliente* piloto = (Cliente*) crianca;
+    printf( "\nThread crianças" );
+    printf( "\nNome: %s\n", piloto->nome );
+
     sem_wait( &capacetes );
     sem_wait( &karts);
 
+    sleep( piloto->tempoDeAluguel );
     //sleep
+    // sleep(1);
 
     sem_post( &karts );
     sem_post( &capacetes );
+
+    printf( "\nThread criança finalizada" );
 }
 
-void* threadAdolescente () {
+void* threadAdolescente ( void* adolescente) {
+    Cliente* piloto = (Cliente*) adolescente;
+    printf( "\nThread adolescentes" );
+
+    printf( "\nNome: %s\n", piloto->nome );
+
     sem_wait( &capacetes );
     sem_wait( &karts);
 
+    sleep( piloto->tempoDeAluguel );
     //sleep
+    // sleep(2);
 
     sem_post( &karts );
     sem_post( &capacetes );
+
+    printf( "\nThread adolescente finalizada" );
 }
 
 void* threadAdulto( void* adulto ) {
+    Cliente* piloto = (Cliente*) adulto;
+    printf( "\nThread adultos" );
+
+    printf( "\nNome: %s\n", piloto->nome );
     sem_wait( &karts );
     sem_wait( &capacetes );
 
+    sleep( piloto->tempoDeAluguel );
     //sleep
+    sleep(3);
 
     sem_post( &capacetes );
     sem_post( &karts );
+
+    printf( "\nThread adulto finalizada" );
 }
