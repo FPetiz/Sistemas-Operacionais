@@ -10,8 +10,8 @@ ou recebemos o tempo pelo txt também? */
 
 // Constantes
 #define MAX_THREADS 10
-#define NUM_KARTS 3
-#define NUM_CAPACETES 3
+#define NUM_KARTS 10
+#define NUM_CAPACETES 10
 
 // Variáveis globais para relatório
 int capacetesUsados = 0;
@@ -69,8 +69,8 @@ int main() {
         for (numThreads = 0; numThreads < pessoas; numThreads++) {
             // fscanf(file, "%s %d %d", piloto[numThreads].nome, &piloto[numThreads].idade, &piloto[numThreads].tempoDeAluguel);
             fscanf(file, "%s", piloto[numThreads].nome);
-            piloto[numThreads].idade = rand() % 22 + 8;
-            piloto[numThreads].tempoDeAluguel = rand() % 40 + 20;
+            piloto[numThreads].idade = rand() % 15 + 8;
+            piloto[numThreads].tempoDeAluguel = rand() % 70 + 20;
 
             if (numThreads >= pessoas) {
                 fprintf(stderr, "\nUltrapassou o limite de threads\n");
@@ -83,25 +83,21 @@ int main() {
         for (numThreads = 0; numThreads < pessoas; ++numThreads) {
             if (piloto[numThreads].idade < 14) {
                 pthread_create(&tCrianca[numThreads], NULL, threadCrianca, &piloto[numThreads]);
+                pthread_detach(tCrianca[numThreads]); // Isso faz com não seja necessário usar o join e as horas não dependem das threads terminarem
             } else if (piloto[numThreads].idade < 18) {
                 pthread_create(&tAdolescente[numThreads], NULL, threadAdolescente, &piloto[numThreads]);
+                pthread_detach(tAdolescente[numThreads]);
             } else {
                 pthread_create(&tAdulto[numThreads], NULL, threadAdulto, &piloto[numThreads]);
+                pthread_detach(tAdulto[numThreads]);
             }
         }
 
-        // Bloqueia novas chamadas até que a thread especificada seja concluída
-        for ( int i = 0; i < numThreads; i++ ) {
-            // for (int j = 0; j < numThreads; j++) { // Porque esse segundo for?
-                pthread_join(tCrianca[i], NULL);
-                pthread_join(tAdolescente[i], NULL);
-                pthread_join(tAdulto[i], NULL);
-        // 
-        }
-        sleep(30);
+        sleep(60);
         printf("\nFim da hora %d\n", hora);
     }
     
+    sleep(90);
     // Destroi os semáforos
     sem_destroy( &capacetes );
     sem_destroy( &karts );
@@ -122,7 +118,7 @@ void* threadCrianca( void* crianca ) {
 
     Cliente* piloto = (Cliente*) crianca;
     printf( "\nThread crianças" );
-    printf( "\nNome: %s\n", piloto->nome );
+    printf( "\nNome: %s\nIdade: %d\nTempo: %d\n", piloto->nome, piloto->idade, piloto->tempoDeAluguel );
 
     ++fila;
     sem_wait( &capacetes );
@@ -131,8 +127,6 @@ void* threadCrianca( void* crianca ) {
     ++kartsUsados;
 
     sleep( piloto->tempoDeAluguel );
-    //sleep
-    // sleep(1);
 
     sem_post( &karts );
     sem_post( &capacetes );
@@ -146,7 +140,7 @@ void* threadAdolescente ( void* adolescente) {
     Cliente* piloto = (Cliente*) adolescente;
     printf( "\nThread adolescentes" );
 
-    printf( "\nNome: %s\n", piloto->nome );
+    printf( "\nNome: %s\nIdade: %d\nTempo: %d\n", piloto->nome, piloto->idade, piloto->tempoDeAluguel );
 
     ++fila;
     sem_wait( &capacetes );
@@ -155,8 +149,6 @@ void* threadAdolescente ( void* adolescente) {
     ++kartsUsados;
 
     sleep( piloto->tempoDeAluguel );
-    //sleep
-    // sleep(2);
 
     sem_post( &karts );
     sem_post( &capacetes );
@@ -164,28 +156,71 @@ void* threadAdolescente ( void* adolescente) {
     ++clientesAtenditos;
 
     printf( "\nThread adolescente finalizada" );
+
+    // Pensei em fazer isso pra garantir que a criança ia ter prioridade mas não parece que deu certo dessa forma
+
+    // ++fila;
+    // do{
+    //     if(sem_trywait(&capacetes) == 0){
+    //         if(sem_trywait(&karts) == 0){
+    //             ++capacetesUsados;
+    //             ++kartsUsados;
+    //             --fila;
+
+    //             sleep( piloto->tempoDeAluguel );
+    //             sem_post( &karts );
+    //             sem_post( &capacetes );
+    //             printf( "\nThread adolescente finalizada" );
+    //             ++clientesAtenditos;
+    //             break;
+    //         } else {
+    //             printf("%s não conseguiu alugar um kart\n", piloto->nome);
+    //             sem_post(&capacetes);
+    //             sleep(15);
+    //         }
+    //     }
+    // } while (sem_trywait(&capacetes) != 0);
 }
 
 void* threadAdulto( void* adulto ) {
     Cliente* piloto = (Cliente*) adulto;
     printf( "\nThread adultos" );
 
-    printf( "\nNome: %s\n", piloto->nome );
+    printf( "\nNome: %s\nIdade: %d\nTempo: %d\n", piloto->nome, piloto->idade, piloto->tempoDeAluguel );
 
     ++fila;
-    sem_wait( &karts );
-    ++kartsUsados;
-    sem_wait( &capacetes );
+    sem_wait( &karts);
     ++capacetesUsados;
+    sem_wait( &capacetes );
+    ++kartsUsados;
 
     sleep( piloto->tempoDeAluguel );
-    //sleep
-    // sleep(3);
 
     sem_post( &capacetes );
     sem_post( &karts );
     --fila;
     ++clientesAtenditos;
 
-    printf( "\nThread adulto finalizada" );
+    printf( "\nThread adultos finalizada" );
+    
+    // do{
+    //     if(sem_trywait(&karts) == 0){
+    //         if(sem_trywait(&capacetes) == 0){
+    //             ++capacetesUsados;
+    //             ++kartsUsados;
+    //             --fila;
+
+    //             sleep( piloto->tempoDeAluguel );
+    //             sem_post( &karts );
+    //             sem_post( &capacetes );
+    //             printf( "\nThread adulto finalizada" );
+    //             ++clientesAtenditos;
+    //             break;
+    //         } else {
+    //             printf("%s não conseguiu alugar um capacete\n", piloto->nome);
+    //             sem_post(&karts);
+    //             sleep(15);
+    //         }
+    //     }
+    // } while (sem_trywait(&karts) != 0);
 }
