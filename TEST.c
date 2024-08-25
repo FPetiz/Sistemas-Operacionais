@@ -129,6 +129,8 @@ int main() {
     // Destroi os semáforos
     sem_destroy( &capacetes );
     sem_destroy( &karts );
+    sem_destroy( &mutex );
+    sem_destroy;( &m_fila );
     
     float media = (float) totalWaitTime / clientesAtendidos;
 
@@ -347,7 +349,7 @@ void a_pegaRecursos(Cliente* piloto) {
 }
 
 // Função adiciona ao tempo total de espera por todas as pessoas
-void addTempo(){
+void addTempo() {
     sem_wait(&mutex);
     ++totalWaitTime;
     sem_post(&mutex);
