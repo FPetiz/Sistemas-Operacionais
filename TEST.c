@@ -25,15 +25,6 @@ int clientesAtendidos = 0;
 int clientesNaoAtendidos = 0;
 int fila = 0;
 int totalWaitTime = 0;
-#define MAX_PILOTOS 80
-
-// Variáveis globais para relatório
-int capacetesUsados = 0;
-int kartsUsados = 0;
-int clientesAtendidos = 0;
-int clientesNaoAtendidos = 0;
-int fila = 0;
-int totalWaitTime = 0;
 
 //Estrutura que define o cliente
 typedef struct Cliente {
