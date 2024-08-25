@@ -1,10 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
+#define HAVE_STRUCT_TIMESPEC
 #include <pthread.h> 
 #include <semaphore.h>
 #include <unistd.h> 
 #include <string.h>
-// #include <sys/syscall.h>
 #include <time.h> /*-- para quando formos gerar o tempo de cada um
 ou recebemos o tempo pelo txt também? */
 #define TRUE 1
@@ -33,13 +33,7 @@ typedef struct Cliente {
     int atendido;
 } Cliente;
 
-
-
-// typedef struct ClienteNaFila {
-//     Cliente cliente;
-// } ClienteNaFila;
-
-// ClienteNaFila *clientesNaFila[80];
+Cliente listaNaoAtendidos[MAX_THREADS];
 
 sem_t capacetes;
 sem_t karts;
@@ -74,7 +68,7 @@ int main() {
     sem_init(&m_fila, 0, 1);
 
     // Abrindo o arquivo
-    FILE* file = fopen( "F:\\Code\\SO\\Sistemas-Operacionais\\Clientes-somente-nome.txt", "r" ); // O meu por algum motivo só lê o arquivo se eu colocar o caminho completo
+    FILE* file = fopen( "Clientes-somente-nome.txt", "r" ); // O meu por algum motivo só lê o arquivo se eu colocar o caminho completo
     if ( file == NULL ) {
         perror( "\nErro: nao foi possivel abrir o arquivo.\n" );
         return EXIT_FAILURE;
@@ -120,6 +114,12 @@ int main() {
 
         sleep(20);
         printf("\nFim da hora %d\n", hora);
+
+        FILE* reportFile = fopen("relatorio_final.txt", "w");
+if (reportFile == NULL) {
+    perror("Erro ao abrir o arquivo de relatório.");
+    return EXIT_FAILURE;
+}
     }
     
     sleep(10);
@@ -129,22 +129,22 @@ int main() {
     
     float media = (float) totalWaitTime / clientesAtendidos;
 
-    printf( "\nRelatório:\n" );
-    printf( "\nCapacetes usados: %d", capacetesUsados );
-    printf( "\nKarts usados: %d", kartsUsados );
-    printf( "\nClientes atendidos: %d", clientesAtendidos );
-    printf( "\nFila: %d", fila );
-    printf( "\nTempo total de espera: %d", totalWaitTime );
-    printf( "\nMédia de tempo esperado: %f", media );
-
-    // printf("\nClientes na fila:\n");
-    // for (int i = 0; i < filaTotal; i++) {
-    //     if (clientesNaFila[i]->cliente.atendido == FALSE)
-    //         printf("\nNome: %s\nIdade: %d\nTempo de espera: %d\n", clientesNaFila[i]->cliente.nome, clientesNaFila[i]->cliente.idade, clientesNaFila[i]->cliente.tempoDeEspera);
-    // }
-
-    // Fecha arquivo txt
+    // Fecha arquivo de nomes 
     fclose( file );
+
+    // Cria arquivo relatório
+    FILE* relatorio = fopen( "relatorio-final.txt", "w" );
+    if ( relatorio == NULL ) {
+        perror( "\nErro ao abrir o arquivo de relatorio.\n" );
+        return EXIT_FAILURE;
+    }
+
+    fprintf( relatorio, "\nRelatorio final\n" );
+    for ( int i = 0; i < clientesNaoAtendidos; i++ ) {
+        fprintf( relatorio, "Nome: %s, Idade: %d, Tempo de Espera: %d\n",
+        listaNaoAtendidos[i].nome, listaNaoAtendidos[i].idade, listaNaoAtendidos[i].tempoDeEspera );
+    }
+
     return 0;
 }
 
@@ -230,19 +230,6 @@ void* threadAdulto( void* adulto ) {
     printf( "\nThread adultos finalizada" );
 }
 
-// void retiraFila(Cliente* piloto) {
-//     for (int i = 0; i < fila; i++) {
-//         if (strcmp(clientesNaFila[i]->cliente.nome, piloto->nome) == 0) {
-//             for (int j = i; j < fila - 1; j++) {
-//                 clientesNaFila[j] = clientesNaFila[j + 1];
-//             }
-//             --fila;
-//             break;
-//         }
-//     }
-
-//     ++clientesAtendidos;
-// }
 
 void c_pegaRecursos(Cliente* piloto) {
     while(1){
@@ -279,6 +266,9 @@ void c_pegaRecursos(Cliente* piloto) {
         sem_post(&mutex);
         break;
         
+        if ( piloto->atendido == FALSE ) {
+            listaNaoAtendidos[clientesNaoAtendidos++] = *piloto;
+        }
     }
 }
 
