@@ -9,8 +9,6 @@
 ou recebemos o tempo pelo txt também? */
 #define TRUE 1
 #define FALSE 0
-#define TRUE 1
-#define FALSE 0
 
 // Constantes
 #define MAX_THREADS 10
