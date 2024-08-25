@@ -9,11 +9,23 @@
 ou recebemos o tempo pelo txt também? */
 #define TRUE 1
 #define FALSE 0
+#define TRUE 1
+#define FALSE 0
 
 // Constantes
 #define MAX_THREADS 10
+#define MAX_THREADS 10
 #define NUM_KARTS 10
 #define NUM_CAPACETES 10
+#define MAX_PILOTOS 80
+
+// Variáveis globais para relatório
+int capacetesUsados = 0;
+int kartsUsados = 0;
+int clientesAtendidos = 0;
+int clientesNaoAtendidos = 0;
+int fila = 0;
+int totalWaitTime = 0;
 #define MAX_PILOTOS 80
 
 // Variáveis globais para relatório
@@ -31,6 +43,8 @@ typedef struct Cliente {
     int tempoDeAluguel;
     int tempoDeEspera;
     int atendido;
+    int tempoDeEspera;
+    int atendido;
 } Cliente;
 
 Cliente listaNaoAtendidos[MAX_THREADS];
@@ -40,11 +54,18 @@ sem_t karts;
 sem_t mutex;
 sem_t m_fila;
 // precisamos de mutex??? - Da pra usar semáforo para controlar o acesso a variáveis compartilhadas
+sem_t mutex;
+sem_t m_fila;
+// precisamos de mutex??? - Da pra usar semáforo para controlar o acesso a variáveis compartilhadas
 
 // Protótipos das funções
 void* threadCrianca(void* crianca);
 void* threadAdolescente(void* adolescente);
 void* threadAdulto(void* adulto);
+void retiraFila(Cliente* piloto);
+void c_pegaRecursos(Cliente* piloto);
+void a_pegaRecursos(Cliente* piloto);
+void addTempo();
 void retiraFila(Cliente* piloto);
 void c_pegaRecursos(Cliente* piloto);
 void a_pegaRecursos(Cliente* piloto);
@@ -58,9 +79,19 @@ int main() {
     int numThreads = 0, atual = 0;
     int expediente = 2;
     int pessoas = 0;
+    Cliente pilotoFila[MAX_THREADS];
+    int numThreads = 0, atual = 0;
+    int expediente = 2;
+    int pessoas = 0;
 
     pthread_t tCrianca[MAX_THREADS], tAdolescente[MAX_THREADS], tAdulto[MAX_THREADS];
+    pthread_t tCrianca[MAX_THREADS], tAdolescente[MAX_THREADS], tAdulto[MAX_THREADS];
 
+    // Inicializa semáforo - não sei porque seria 0 ou 1 -- 0 ou 1 indica se vai ser compartilhado ou não
+    sem_init(&capacetes, 0, NUM_CAPACETES);
+    sem_init(&karts, 0, NUM_KARTS);
+    sem_init(&mutex, 0, 1);
+    sem_init(&m_fila, 0, 1);
     // Inicializa semáforo - não sei porque seria 0 ou 1 -- 0 ou 1 indica se vai ser compartilhado ou não
     sem_init(&capacetes, 0, NUM_CAPACETES);
     sem_init(&karts, 0, NUM_KARTS);
@@ -215,7 +246,20 @@ void* threadAdulto( void* adulto ) {
     sem_post(&m_fila);
 
     a_pegaRecursos(piloto);
+    Cliente* piloto = (Cliente*) adulto;
+    printf( "\nThread adultos" );
 
+    printf( "\nNome: %s\nIdade: %d\nTempo: %d\n", piloto->nome, piloto->idade, piloto->tempoDeAluguel );
+
+    sem_wait(&m_fila);
+    // clientesNaFila[filaTotal]->cliente = *piloto;
+    ++fila;
+    // ++filaTotal;
+    sem_post(&m_fila);
+
+    a_pegaRecursos(piloto);
+
+    sleep( piloto->tempoDeAluguel );
     sleep( piloto->tempoDeAluguel );
 
     sem_post( &capacetes );
