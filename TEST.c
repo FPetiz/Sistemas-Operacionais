@@ -14,18 +14,8 @@ ou recebemos o tempo pelo txt também? */
 
 // Constantes
 #define MAX_THREADS 10
-#define MAX_THREADS 10
 #define NUM_KARTS 10
 #define NUM_CAPACETES 10
-#define MAX_PILOTOS 80
-
-// Variáveis globais para relatório
-int capacetesUsados = 0;
-int kartsUsados = 0;
-int clientesAtendidos = 0;
-int clientesNaoAtendidos = 0;
-int fila = 0;
-int totalWaitTime = 0;
 #define MAX_PILOTOS 80
 
 // Variáveis globais para relatório
@@ -43,9 +33,13 @@ typedef struct Cliente {
     int tempoDeAluguel;
     int tempoDeEspera;
     int atendido;
-    int tempoDeEspera;
-    int atendido;
 } Cliente;
+
+// typedef struct ClienteNaFila {
+//     Cliente cliente;
+// } ClienteNaFila;
+
+// ClienteNaFila *clientesNaFila[80];
 
 Cliente listaNaoAtendidos[MAX_THREADS];
 
@@ -53,38 +47,24 @@ sem_t capacetes;
 sem_t karts;
 sem_t mutex;
 sem_t m_fila;
-// precisamos de mutex??? - Da pra usar semáforo para controlar o acesso a variáveis compartilhadas
-sem_t mutex;
-sem_t m_fila;
-// precisamos de mutex??? - Da pra usar semáforo para controlar o acesso a variáveis compartilhadas
 
 // Protótipos das funções
 void* threadCrianca(void* crianca);
 void* threadAdolescente(void* adolescente);
 void* threadAdulto(void* adulto);
-void retiraFila(Cliente* piloto);
-void c_pegaRecursos(Cliente* piloto);
-void a_pegaRecursos(Cliente* piloto);
-void addTempo();
-void retiraFila(Cliente* piloto);
 void c_pegaRecursos(Cliente* piloto);
 void a_pegaRecursos(Cliente* piloto);
 void addTempo();
 
 int main() {
 
-    // Variáveis - não sei se essa primeira precisa ser global
+    // Variáveis 
     Cliente piloto[MAX_THREADS];
     Cliente pilotoFila[MAX_THREADS];
     int numThreads = 0, atual = 0;
     int expediente = 2;
     int pessoas = 0;
-    Cliente pilotoFila[MAX_THREADS];
-    int numThreads = 0, atual = 0;
-    int expediente = 2;
-    int pessoas = 0;
 
-    pthread_t tCrianca[MAX_THREADS], tAdolescente[MAX_THREADS], tAdulto[MAX_THREADS];
     pthread_t tCrianca[MAX_THREADS], tAdolescente[MAX_THREADS], tAdulto[MAX_THREADS];
 
     // Inicializa semáforo - não sei porque seria 0 ou 1 -- 0 ou 1 indica se vai ser compartilhado ou não
@@ -94,7 +74,7 @@ int main() {
     sem_init(&m_fila, 0, 1);
 
     // Abrindo o arquivo
-    FILE* file = fopen( "Clientes-somente-nome.txt", "r" ); // O meu por algum motivo só lê o arquivo se eu colocar o caminho completo
+    FILE* file = fopen( "F:\\Code\\Sistemas-Operacionais\\Clientes-somente-nome.txt", "r" ); // O meu por algum motivo só lê o arquivo se eu colocar o caminho completo
     if ( file == NULL ) {
         perror( "\nErro: nao foi possivel abrir o arquivo.\n" );
         return EXIT_FAILURE;
@@ -141,11 +121,6 @@ int main() {
         sleep(20);
         printf("\nFim da hora %d\n", hora);
 
-        FILE* reportFile = fopen("relatorio_final.txt", "w");
-if (reportFile == NULL) {
-    perror("Erro ao abrir o arquivo de relatório.");
-    return EXIT_FAILURE;
-}
     }
     
     sleep(10);
@@ -155,17 +130,27 @@ if (reportFile == NULL) {
     
     float media = (float) totalWaitTime / clientesAtendidos;
 
+    // printf("\nClientes na fila:\n");
+    // for (int i = 0; i < filaTotal; i++) {
+    //     if (clientesNaFila[i]->cliente.atendido == FALSE)
+    //         printf("\nNome: %s\nIdade: %d\nTempo de espera: %d\n", clientesNaFila[i]->cliente.nome, clientesNaFila[i]->cliente.idade, clientesNaFila[i]->cliente.tempoDeEspera);
+    // }
+
     // Fecha arquivo de nomes 
     fclose( file );
 
     // Cria arquivo relatório
-    FILE* relatorio = fopen( "relatorio-final.txt", "w" );
+    FILE* relatorio = fopen( "F:\\Code\\Sistemas-Operacionais\\relatorio-final.txt", "w+" );
     if ( relatorio == NULL ) {
         perror( "\nErro ao abrir o arquivo de relatorio.\n" );
         return EXIT_FAILURE;
     }
 
     fprintf( relatorio, "\nRelatorio final\n" );
+    fprintf( relatorio, "Total de clientes atendidos: %d\n", clientesAtendidos);
+    fprintf( relatorio, "Tempo medio de espera: %.2f\n", media );
+    fprintf( relatorio, "Capacetes usados: %d\n", capacetesUsados );
+    fprintf( relatorio, "Karts usados: %d\n", kartsUsados );
     for ( int i = 0; i < clientesNaoAtendidos; i++ ) {
         fprintf( relatorio, "Nome: %s, Idade: %d, Tempo de Espera: %d\n",
         listaNaoAtendidos[i].nome, listaNaoAtendidos[i].idade, listaNaoAtendidos[i].tempoDeEspera );
@@ -182,7 +167,6 @@ void* threadCrianca( void* crianca ) {
     printf( "\nNome: %s\nIdade: %d\nTempo: %d\n", piloto->nome, piloto->idade, piloto->tempoDeAluguel );
 
     // A pessoa entra e vai para a fila
-    adicionarNaFila(piloto);
     ++fila;
     sem_post(&m_fila);
 
@@ -198,7 +182,6 @@ void* threadCrianca( void* crianca ) {
 
     // A pessoa sai da fila e é contabilizada
     sem_wait(&m_fila);
-    removerDaFila(piloto);
     --fila;
     ++clientesAtendidos;
     sem_post(&m_fila);
@@ -214,8 +197,6 @@ void* threadAdolescente ( void* adolescente) {
     printf( "\nNome: %s\nIdade: %d\nTempo: %d\n", piloto->nome, piloto->idade, piloto->tempoDeAluguel );
 
     // A pessoa entra e vai para a fila
-    adicionarNaFila(piloto);
-    // clientesNaFila[fila].cliente = *piloto;
     ++fila;
 
     sem_post(&m_fila);
@@ -231,7 +212,6 @@ void* threadAdolescente ( void* adolescente) {
 
     // A pessoa sai da fila e é contabilizada
     sem_wait(&m_fila);
-    removerDaFila(piloto);
     --fila;
     ++clientesAtendidos;
     sem_post(&m_fila);
@@ -260,7 +240,6 @@ void* threadAdulto( void* adulto ) {
     sem_post( &karts );
 
     sem_wait(&m_fila);
-    removerDaFila(piloto);
     --fila;
     ++clientesAtendidos;
     sem_post(&m_fila);
@@ -357,6 +336,10 @@ void a_pegaRecursos(Cliente* piloto) {
         piloto->atendido = TRUE;
         sem_post(&mutex);
         break;
+
+        if (piloto->atendido) {
+
+        }
     }
 }
 
