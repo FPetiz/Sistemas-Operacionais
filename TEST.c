@@ -42,8 +42,13 @@ typedef struct Cliente {
     int tempoDeAluguel;
     int tempoDeEspera;
     int atendido;
-    int atendido;
 } Cliente;
+
+// typedef struct ClienteNaFila {
+//     Cliente cliente;
+// } ClienteNaFila;
+
+// ClienteNaFila *clientesNaFila[80];
 
 Cliente listaNaoAtendidos[MAX_THREADS];
 
@@ -126,11 +131,6 @@ int main() {
         sleep(20);
         printf("\nFim da hora %d\n", hora);
 
-        FILE* reportFile = fopen("relatorio_final.txt", "w");
-        if (reportFile == NULL) {
-            perror("Erro ao abrir o arquivo de relatório.");
-            return EXIT_FAILURE;
-        }   
     }
     
     sleep(10);
@@ -139,6 +139,12 @@ int main() {
     sem_destroy( &karts );
     
     float media = (float) totalWaitTime / clientesAtendidos;
+
+    // printf("\nClientes na fila:\n");
+    // for (int i = 0; i < filaTotal; i++) {
+    //     if (clientesNaFila[i]->cliente.atendido == FALSE)
+    //         printf("\nNome: %s\nIdade: %d\nTempo de espera: %d\n", clientesNaFila[i]->cliente.nome, clientesNaFila[i]->cliente.idade, clientesNaFila[i]->cliente.tempoDeEspera);
+    // }
 
     // Fecha arquivo de nomes 
     fclose( file );
@@ -258,6 +264,19 @@ void* threadAdulto( void* adulto ) {
     printf( "\nThread adultos finalizada" );
 }
 
+// void retiraFila(Cliente* piloto) {
+//     for (int i = 0; i < fila; i++) {
+//         if (strcmp(clientesNaFila[i]->cliente.nome, piloto->nome) == 0) {
+//             for (int j = i; j < fila - 1; j++) {
+//                 clientesNaFila[j] = clientesNaFila[j + 1];
+//             }
+//             --fila;
+//             break;
+//         }
+//     }
+
+//     ++clientesAtendidos;
+// }
 
 void c_pegaRecursos( Cliente* piloto ) {
     while(1){
