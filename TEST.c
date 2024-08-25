@@ -14,7 +14,6 @@ ou recebemos o tempo pelo txt também? */
 
 // Constantes
 #define MAX_THREADS 10
-#define MAX_THREADS 10
 #define NUM_KARTS 10
 #define NUM_CAPACETES 10
 #define MAX_PILOTOS 80
@@ -43,7 +42,6 @@ typedef struct Cliente {
     int tempoDeAluguel;
     int tempoDeEspera;
     int atendido;
-    int tempoDeEspera;
     int atendido;
 } Cliente;
 
@@ -53,10 +51,6 @@ sem_t capacetes;
 sem_t karts;
 sem_t mutex;
 sem_t m_fila;
-// precisamos de mutex??? - Da pra usar semáforo para controlar o acesso a variáveis compartilhadas
-sem_t mutex;
-sem_t m_fila;
-// precisamos de mutex??? - Da pra usar semáforo para controlar o acesso a variáveis compartilhadas
 
 // Protótipos das funções
 void* threadCrianca(void* crianca);
@@ -66,32 +60,18 @@ void retiraFila(Cliente* piloto);
 void c_pegaRecursos(Cliente* piloto);
 void a_pegaRecursos(Cliente* piloto);
 void addTempo();
-void retiraFila(Cliente* piloto);
-void c_pegaRecursos(Cliente* piloto);
-void a_pegaRecursos(Cliente* piloto);
-void addTempo();
 
 int main() {
 
-    // Variáveis - não sei se essa primeira precisa ser global
+    // Variáveis 
     Cliente piloto[MAX_THREADS];
     Cliente pilotoFila[MAX_THREADS];
     int numThreads = 0, atual = 0;
     int expediente = 2;
     int pessoas = 0;
-    Cliente pilotoFila[MAX_THREADS];
-    int numThreads = 0, atual = 0;
-    int expediente = 2;
-    int pessoas = 0;
 
     pthread_t tCrianca[MAX_THREADS], tAdolescente[MAX_THREADS], tAdulto[MAX_THREADS];
-    pthread_t tCrianca[MAX_THREADS], tAdolescente[MAX_THREADS], tAdulto[MAX_THREADS];
 
-    // Inicializa semáforo - não sei porque seria 0 ou 1 -- 0 ou 1 indica se vai ser compartilhado ou não
-    sem_init(&capacetes, 0, NUM_CAPACETES);
-    sem_init(&karts, 0, NUM_KARTS);
-    sem_init(&mutex, 0, 1);
-    sem_init(&m_fila, 0, 1);
     // Inicializa semáforo - não sei porque seria 0 ou 1 -- 0 ou 1 indica se vai ser compartilhado ou não
     sem_init(&capacetes, 0, NUM_CAPACETES);
     sem_init(&karts, 0, NUM_KARTS);
@@ -147,10 +127,10 @@ int main() {
         printf("\nFim da hora %d\n", hora);
 
         FILE* reportFile = fopen("relatorio_final.txt", "w");
-if (reportFile == NULL) {
-    perror("Erro ao abrir o arquivo de relatório.");
-    return EXIT_FAILURE;
-}
+        if (reportFile == NULL) {
+            perror("Erro ao abrir o arquivo de relatório.");
+            return EXIT_FAILURE;
+        }   
     }
     
     sleep(10);
@@ -171,6 +151,10 @@ if (reportFile == NULL) {
     }
 
     fprintf( relatorio, "\nRelatorio final\n" );
+    fprintf( relatorio, "Total de clientes atendidos: %d\n", clientesAtendidos);
+    fprintf( relatorio, "Tempo medio de espera: %.2f\n", media );
+    fprintf( relatorio, "Capacetes usados: %d\n", capacetes );
+    fprintf( relatorio, "Karts usados: %d\n", karts );
     for ( int i = 0; i < clientesNaoAtendidos; i++ ) {
         fprintf( relatorio, "Nome: %s, Idade: %d, Tempo de Espera: %d\n",
         listaNaoAtendidos[i].nome, listaNaoAtendidos[i].idade, listaNaoAtendidos[i].tempoDeEspera );
@@ -275,10 +259,10 @@ void* threadAdulto( void* adulto ) {
 }
 
 
-void c_pegaRecursos(Cliente* piloto) {
+void c_pegaRecursos( Cliente* piloto ) {
     while(1){
 
-        if (sem_trywait(&capacetes) != 0){
+        if ( sem_trywait(&capacetes) != 0 ){
 
             sleep(1);
             ++piloto->tempoDeEspera;
@@ -293,7 +277,7 @@ void c_pegaRecursos(Cliente* piloto) {
         ++capacetesUsados;      
         sem_post(&mutex);
 
-        if (sem_trywait(&karts) != 0){
+        if ( sem_trywait(&karts) != 0 ) {
             sem_post(&capacetes);
             sleep(1);
             ++piloto->tempoDeEspera;
@@ -316,9 +300,9 @@ void c_pegaRecursos(Cliente* piloto) {
     }
 }
 
-void a_pegaRecursos(Cliente* piloto) {
+void a_pegaRecursos( Cliente* piloto ) {
     while(1){
-        if (sem_trywait(&karts) != 0){
+        if ( sem_trywait(&karts) != 0 ) {
             sleep(1);
             ++piloto->tempoDeEspera;
             sem_wait(&m_fila);
@@ -332,7 +316,7 @@ void a_pegaRecursos(Cliente* piloto) {
         ++kartsUsados;      
         sem_post(&mutex); 
 
-        if (sem_trywait(&capacetes) != 0){
+        if ( sem_trywait(&capacetes ) != 0) {
             sem_post(&karts);
             sleep(1);
             ++piloto->tempoDeEspera;
@@ -348,6 +332,10 @@ void a_pegaRecursos(Cliente* piloto) {
         piloto->atendido = TRUE;
         sem_post(&mutex);
         break;
+
+        if (piloto->atendido) {
+
+        }
     }
 }
 
@@ -356,4 +344,3 @@ void addTempo(){
     ++totalWaitTime;
     sem_post(&mutex);
 }
-
