@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>
-#define HAVE_STRUCT_TIMESPEC
 #include <pthread.h> 
 #include <semaphore.h>
 #include <unistd.h> 
@@ -31,9 +30,6 @@ typedef struct Cliente {
     int tempoDeEspera;
     int atendido;
 } Cliente;
-
-// Lista de clientes não atendidos 
-Cliente listaNaoAtendidos[MAX_THREADS];
 
 // Semáforos 
 sem_t capacetes;
@@ -66,7 +62,7 @@ int main() {
     sem_init(&m_fila, 0, 1);
 
     // Abrindo o arquivo que contém os nomes dos clietes
-    FILE* file = fopen( "Clientes.txt", "r" ); 
+    FILE* file = fopen( "F:\\Code\\Sistemas-Operacionais\\Clientes.txt", "r" ); 
     if ( file == NULL ) {
         perror( "\nErro: nao foi possivel abrir o arquivo.\n" );
         return EXIT_FAILURE;
@@ -86,7 +82,7 @@ int main() {
         for ( numThreads = 0; numThreads < pessoas; numThreads++ ) {
             fscanf(file, "%s", piloto[numThreads + aux].nome);
             piloto[numThreads + aux].idade = rand() % 17 + 8;
-            piloto[numThreads + aux].tempoDeAluguel = rand() % 40 + 20;
+            piloto[numThreads + aux].tempoDeAluguel = rand() % 120 + 60;
             piloto[numThreads + aux].tempoDeEspera = 0;  
             piloto[numThreads + aux].atendido = FALSE;
 
@@ -113,7 +109,7 @@ int main() {
         aux += numThreads;
         totalClientes += pessoas;
 
-        sleep(20);
+        sleep(60);
         printf("\nFim da hora %d\n", hora);
 
     }
@@ -132,7 +128,7 @@ int main() {
     fclose( file );
 
     // Cria arquivo relatório
-    FILE* relatorio = fopen( "relatorio-final.txt", "w+" );
+    FILE* relatorio = fopen( "F:\\Code\\Sistemas-Operacionais\\relatorio-final.txt", "w+" );
     if ( relatorio == NULL ) {
         perror( "\nErro ao abrir o arquivo de relatorio.\n" );
         return EXIT_FAILURE;
