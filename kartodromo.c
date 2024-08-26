@@ -140,12 +140,12 @@ int main() {
 
     // Escreve no relatório
     fprintf( relatorio, "Relatorio final\n" );
-    fprintf( relatorio, "\nTotal de clientes atendidos: %d\n", clientesAtendidos );
-    fprintf( relatorio, "Tempo medio de espera: %.2f\n", media );
     fprintf( relatorio, "Capacetes usados: %d\n", capacetesUsados );
     fprintf( relatorio, "Karts usados: %d\n", kartsUsados );
-    fprintf( relatorio, "Total de clientes: %d\n", totalClientes );
-    fprintf( relatorio, "\nClientes que não foram atendidos:\n" );
+    fprintf( relatorio, "\nTotal de clientes: %d\n", totalClientes );
+    fprintf( relatorio, "Total de clientes atendidos: %d\n", clientesAtendidos );
+    fprintf( relatorio, "Tempo medio de espera: %.2f\n", media );
+    fprintf( relatorio, "Clientes que não foram atendidos:\n" );
     for( int i = 0; i < totalClientes; i++ ) {
         if ( piloto[i].atendido == FALSE ) {
             fprintf( relatorio, "\nNome: %s, Idade: %d, Tempo de Espera: %d\n", piloto[i].nome, piloto[i].idade, piloto[i].tempoDeEspera );
