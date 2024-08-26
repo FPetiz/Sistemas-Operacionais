@@ -5,7 +5,7 @@
  ### Features
 
 - [x] Cada pessoa é representada por uma thread e possui nome e idade;
-- [x] cada pessoa pode pode fazer um aluguel de 1h a 2h e 30min;
+- [x] Cada pessoa pode pode fazer um aluguel de 1h a 2h e 30min;
 - [x] Grupos de threas de forma aleatória ao longo do dia;
 - [x] Todo piloto precisa de kart e capacete para entrar na pista;
 - [x] Crianças têm prioridade para capacete e adultos para kart;
