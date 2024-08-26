@@ -50,17 +50,14 @@ sem_t m_fila;
 void* threadCrianca(void* crianca);
 void* threadAdolescente(void* adolescente);
 void* threadAdulto(void* adulto);
-void c_pegaRecursos(Cliente* piloto);
-void a_pegaRecursos(Cliente* piloto);
 void addTempo();
 
 int main() {
 
     // Variáveis 
     Cliente piloto[MAX_PILOTOS];
-    Cliente pilotoFila[MAX_THREADS];
     int numThreads = 0, atual = 0;
-    int expediente = 2;
+    int expediente = 8;
     int pessoas = 0;
     int aux = 0;
 
@@ -85,15 +82,14 @@ int main() {
     // For para simular o expediente
     for (int hora = 0; hora < expediente; ++hora) {
 
-        // pessoas = rand() % 10 + 1;
-        pessoas = 10;
+        pessoas = rand() % 10 + 1;
+        // pessoas = 10;
         printf("\nTotal de pessoas %d\n", pessoas);
         // Leitura do arquivo e obtenção de dados -- Transformei os whiles em fors
         for (numThreads = 0; numThreads < pessoas; numThreads++) {
-            // fscanf(file, "%s %d %d", piloto[numThreads].nome, &piloto[numThreads].idade, &piloto[numThreads].tempoDeAluguel);
             fscanf(file, "%s", piloto[numThreads + aux].nome);
-            piloto[numThreads + aux].idade = rand() % 15 + 8;
-            piloto[numThreads + aux].tempoDeAluguel = rand() % 25 + 5;
+            piloto[numThreads + aux].idade = rand() % 17 + 8;
+            piloto[numThreads + aux].tempoDeAluguel = rand() % 40 + 20;
             piloto[numThreads + aux].tempoDeEspera = 0;  
             piloto[numThreads + aux].atendido = FALSE;
 
@@ -155,6 +151,7 @@ int main() {
     fprintf( relatorio, "Tempo medio de espera: %.2f\n", media );
     fprintf( relatorio, "Capacetes usados: %d\n", capacetesUsados );
     fprintf( relatorio, "Karts usados: %d\n", kartsUsados );
+    fprintf( relatorio, "Total de clientes: %d\n", totalClientes );
 
     fprintf( relatorio, "\nClientes que não foram atendidos:\n" );
     for( int i = 0; i < totalClientes; i++ ) {
@@ -169,98 +166,15 @@ int main() {
 
 
 void* threadCrianca( void* crianca ) {
-    sem_wait(&m_fila);
     Cliente* piloto = (Cliente*) crianca;
     printf( "\nThread crianças" );
     printf( "\nNome: %s\nIdade: %d\nTempo: %d\n", piloto->nome, piloto->idade, piloto->tempoDeAluguel );
 
     // A pessoa entra e vai para a fila
+    sem_wait(&m_fila);
     ++fila;
     sem_post(&m_fila);
-    c_pegaRecursos(piloto);
-
-    // A pessoa pega os recursos
-
-    // A pessoa usa os recursos pelo tempo gerado aleatóriamente
-    sleep( piloto->tempoDeAluguel );
-
-    // A pessoa libera os recursos
-    sem_post( &karts );
-    sem_post( &capacetes );
-
-    // A pessoa sai da fila e é contabilizada
-    sem_wait(&m_fila);
-    --fila;
-    ++clientesAtendidos;
-    piloto->atendido = TRUE;
-    sem_post(&m_fila);
-    
-    printf( "\n%s saiu da pista", piloto->nome );
-}
-
-void* threadAdolescente ( void* adolescente) {
-    sem_wait(&m_fila);
-    Cliente* piloto = (Cliente*) adolescente;
-    printf( "\nThread adolescentes" );
-
-    printf( "\nNome: %s\nIdade: %d\nTempo: %d\n", piloto->nome, piloto->idade, piloto->tempoDeAluguel );
-
-    // A pessoa entra e vai para a fila
-    ++fila;
-
-    sem_post(&m_fila);
-    // A pessoa pega os recursos
-    c_pegaRecursos(piloto);
-
-    // A pessoa usa os recursos pelo tempo gerado aleatóriamente
-    sleep( piloto->tempoDeAluguel );
-
-    // A pessoa libera os recursos
-    sem_post( &karts );
-    sem_post( &capacetes );
-
-    // A pessoa sai da fila e é contabilizada
-    sem_wait(&m_fila);
-    --fila;
-    ++clientesAtendidos;
-    piloto->atendido = TRUE;
-    sem_post(&m_fila);
-
-    printf( "\n%s saiu da pista", piloto->nome );
-}
-
-void* threadAdulto( void* adulto ) {
-    sem_wait(&m_fila);
-    Cliente* piloto = (Cliente*) adulto;
-    printf( "\nThread adultos" );
-
-    printf( "\nNome: %s\nIdade: %d\nTempo: %d\n", piloto->nome, piloto->idade, piloto->tempoDeAluguel );
-
-    
-    // clientesNaFila[filaTotal]->cliente = *piloto;
-    ++fila;
-    // ++filaTotal;
-    sem_post(&m_fila);
-
-    a_pegaRecursos(piloto);
-
-
-    sleep( piloto->tempoDeAluguel );
-
-    sem_post( &capacetes );
-    sem_post( &karts );
-
-    sem_wait(&m_fila);
-    --fila;
-    ++clientesAtendidos;
-    piloto->atendido = TRUE;
-    sem_post(&m_fila);
-
-    printf( "\n%s saiu da pista", piloto->nome );
-}
-
-// Pega recursos para crianças e adolescentes
-void c_pegaRecursos(Cliente* piloto) {
+    // c_pegaRecursos(piloto);
 
     // Enquanto não conseguir pegar os recursos, a pessoa fica esperando
     while(1){
@@ -269,15 +183,16 @@ void c_pegaRecursos(Cliente* piloto) {
         if (sem_trywait(&capacetes) != 0){
 
             sleep(1);
-            sem_wait(&m_fila);
+            // sem_wait(&m_fila);
             piloto->tempoDeEspera += 1;
             printf("\nTempo de espera de %s: %d\n", piloto->nome ,piloto->tempoDeEspera);
             // clientesNaFila[filaTotal]->cliente = *piloto;
-            sem_post(&m_fila);
+            // sem_post(&m_fila);
             addTempo();
             continue;
         }
 
+        printf("\nCapacete pego por %s\n", piloto->nome);
         // Se conseguir pegar um capacete, ele é contabilizado
         sem_wait(&mutex);
         ++capacetesUsados;      
@@ -285,29 +200,133 @@ void c_pegaRecursos(Cliente* piloto) {
 
         // Se não conseguir pegar um kart, a pessoa espera
         if (sem_trywait(&karts) != 0){
-            sem_post(&capacetes);
+            // sem_post(&capacetes);
             sleep(1);
-            sem_wait(&m_fila);
+            // sem_wait(&m_fila);
             piloto->tempoDeEspera += 1;
             printf("\nTempo de espera de %s: %d\n", piloto->nome ,piloto->tempoDeEspera);
             // clientesNaFila[filaTotal]->cliente = *piloto;
-            sem_post(&m_fila);
+            // sem_post(&m_fila);
             addTempo();
             continue;
         } 
 
+        printf("\nKart pego por %s\n", piloto->nome);
         // Se conseguir pegar um kart, ele é contabilizado
         sem_wait(&mutex);
         ++kartsUsados;
-        // piloto->atendido = TRUE;
+        piloto->atendido = TRUE;
+        ++clientesAtendidos;
         sem_post(&mutex);
         break;
         
     }
+    // A pessoa pega os recursos
+
+    // A pessoa usa os recursos pelo tempo gerado aleatóriamente
+    sleep( piloto->tempoDeAluguel );
+
+    // A pessoa libera os recursos
+    sem_post( &karts );
+    sem_post( &capacetes );
+
+    // A pessoa sai da fila e é contabilizada
+    sem_wait(&m_fila);
+    --fila;
+    sem_post(&m_fila);
+    
+    printf( "\n%s saiu da pista", piloto->nome );
 }
 
-// Pega recursos para adultos
-void a_pegaRecursos(Cliente* piloto) {
+void* threadAdolescente ( void* adolescente) {
+    Cliente* piloto = (Cliente*) adolescente;
+    printf( "\nThread adolescentes" );
+
+    printf( "\nNome: %s\nIdade: %d\nTempo: %d\n", piloto->nome, piloto->idade, piloto->tempoDeAluguel );
+
+    // A pessoa entra e vai para a fila
+    sem_wait(&m_fila);
+    ++fila;
+
+    sem_post(&m_fila);
+    // A pessoa pega os recursos
+
+    // A pessoa usa os recursos pelo tempo gerado aleatóriamente
+    // c_pegaRecursos(piloto);
+
+    // Enquanto não conseguir pegar os recursos, a pessoa fica esperando
+    while(1){
+
+        // Se não conseguir pegar um capacete, a pessoa espera
+        if (sem_trywait(&capacetes) != 0){
+
+            sleep(1);
+            // sem_wait(&m_fila);
+            piloto->tempoDeEspera += 1;
+            printf("\nTempo de espera de %s: %d\n", piloto->nome ,piloto->tempoDeEspera);
+            // clientesNaFila[filaTotal]->cliente = *piloto;
+            // sem_post(&m_fila);
+            addTempo();
+            continue;
+        }
+
+        printf("\nCapacete pego por %s\n", piloto->nome);
+        // Se conseguir pegar um capacete, ele é contabilizado
+        sem_wait(&mutex);
+        ++capacetesUsados;      
+        sem_post(&mutex);
+
+        // Se não conseguir pegar um kart, a pessoa espera
+        if (sem_trywait(&karts) != 0){
+            // sem_post(&capacetes);
+            sleep(1);
+            // sem_wait(&m_fila);
+            piloto->tempoDeEspera += 1;
+            printf("\nTempo de espera de %s: %d\n", piloto->nome ,piloto->tempoDeEspera);
+            // clientesNaFila[filaTotal]->cliente = *piloto;
+            // sem_post(&m_fila);
+            addTempo();
+            continue;
+        } 
+
+        printf("\nKart pego por %s\n", piloto->nome);
+        // Se conseguir pegar um kart, ele é contabilizado
+        sem_wait(&mutex);
+        ++kartsUsados;
+        piloto->atendido = TRUE;
+        ++clientesAtendidos;
+        sem_post(&mutex);
+        break;
+        
+    }
+
+    sleep( piloto->tempoDeAluguel );
+    // A pessoa libera os recursos
+    sem_post( &karts );
+    sem_post( &capacetes );
+
+    // A pessoa sai da fila e é contabilizada
+    sem_wait(&m_fila);
+    --fila;
+    sem_post(&m_fila);
+
+    printf( "\n%s saiu da pista", piloto->nome );
+}
+
+void* threadAdulto( void* adulto ) {
+    Cliente* piloto = (Cliente*) adulto;
+    printf( "\nThread adultos" );
+
+    printf( "\nNome: %s\nIdade: %d\nTempo: %d\n", piloto->nome, piloto->idade, piloto->tempoDeAluguel );
+
+    
+    sem_wait(&m_fila);
+    // clientesNaFila[filaTotal]->cliente = *piloto;
+    ++fila;
+    // ++filaTotal;
+
+    sem_post(&m_fila);
+    // a_pegaRecursos(piloto);
 
     // Enquanto não conseguir pegar os recursos, a pessoa fica esperando
     while(1){
@@ -315,37 +334,51 @@ void a_pegaRecursos(Cliente* piloto) {
         // Se não conseguir pegar um kart, a pessoa espera
         if (sem_trywait(&karts) != 0){
             sleep(1);
-            sem_wait(&m_fila);
+            // sem_wait(&m_fila);
             piloto->tempoDeEspera += 1;
             printf("\nTempo de espera de %s: %d\n", piloto->nome ,piloto->tempoDeEspera);
-            sem_post(&m_fila);
+            // sem_post(&m_fila);
             addTempo();
             continue;
         }
 
         // Se conseguir pegar um kart, ele é contabilizado
+        printf("\nKart pego por %s\n", piloto->nome);
         sem_wait(&mutex);
         ++kartsUsados;      
         sem_post(&mutex); 
 
         // Se não conseguir pegar um capacete, a pessoa espera
         if (sem_trywait(&capacetes) != 0){
-            sem_post(&karts);
+            // sem_post(&karts);
             sleep(1);
-            sem_wait(&m_fila);
+            // sem_wait(&m_fila);
             piloto->tempoDeEspera += 1;
             printf("\nTempo de espera de %s: %d\n", piloto->nome ,piloto->tempoDeEspera);
-            sem_post(&m_fila);
+            // sem_post(&m_fila);
             addTempo();
             continue;
         } 
-
+        printf("\nCapacete pego por %s\n", piloto->nome);
         // Se conseguir pegar um capacete, ele é contabilizado
         sem_wait(&mutex);
         ++capacetesUsados;
+        piloto->atendido = TRUE;
+        ++clientesAtendidos;
         sem_post(&mutex);
         break;
     }
+
+    sleep( piloto->tempoDeAluguel );
+
+    sem_post( &capacetes );
+    sem_post( &karts );
+
+    sem_wait(&m_fila);
+    --fila;
+    sem_post(&m_fila);
+
+    printf( "\n%s saiu da pista", piloto->nome );
 }
 
 // Função adiciona ao tempo total de espera por todas as pessoas
