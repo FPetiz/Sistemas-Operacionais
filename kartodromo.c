@@ -50,6 +50,7 @@ int main() {
     int expediente = 8;
     int pessoas = 0;
     int aux = 0;
+    int totalClientes = 0;
 
     // Define arrays de threads
     pthread_t tCrianca[MAX_THREADS], tAdolescente[MAX_THREADS], tAdulto[MAX_THREADS];
@@ -66,9 +67,7 @@ int main() {
         perror( "\nErro: nao foi possivel abrir o arquivo.\n" );
         return EXIT_FAILURE;
     }
-
-    int totalClientes = 0;
-
+    
     srand(time(NULL));
     // For para simular o expediente
     for ( int hora = 0; hora < expediente; ++hora ) {
