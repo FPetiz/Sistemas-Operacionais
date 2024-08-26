@@ -81,7 +81,7 @@ int main() {
         for ( numThreads = 0; numThreads < pessoas; numThreads++ ) {
             fscanf(file, "%s", piloto[numThreads + aux].nome);
             piloto[numThreads + aux].idade = rand() % 17 + 8;
-            piloto[numThreads + aux].tempoDeAluguel = rand() % 120 + 60;
+            piloto[numThreads + aux].tempoDeAluguel = rand() % 90 + 60;
             piloto[numThreads + aux].tempoDeEspera = 0;  
             piloto[numThreads + aux].atendido = FALSE;
 
@@ -110,7 +110,6 @@ int main() {
 
         sleep(60);
         printf("\nFim da hora %d\n", hora);
-
     }
     
     sleep(1);
