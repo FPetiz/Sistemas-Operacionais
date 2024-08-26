@@ -10,7 +10,7 @@
 - [x] Todo piloto precisa de kart e capacete para entrar na pista;
 - [x] Crianças têm prioridade para capacete e adultos para kart;
 - [x] Simular a ideia de dia;
-- [ ] Relatório impresso ao final contendo o total de clientes atendidos, tempo médio de espera, clientes que ficaram na fila e não foram atendidos (apresentar o tempo de espera), quantidade de vezes que cada recurso foi utilizado;
+- [x] Relatório impresso ao final contendo o total de clientes atendidos, tempo médio de espera, clientes que ficaram na fila e não foram atendidos (apresentar o tempo de espera), quantidade de vezes que cada recurso foi utilizado;
 
  ### Autores
 
