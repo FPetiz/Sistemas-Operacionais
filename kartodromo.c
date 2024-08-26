@@ -3,7 +3,6 @@
 #include <pthread.h> 
 #include <semaphore.h>
 #include <unistd.h> 
-#include <string.h>
 #include <time.h> 
 #define TRUE 1
 #define FALSE 0
